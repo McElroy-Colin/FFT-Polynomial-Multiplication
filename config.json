@@ -1,0 +1,5 @@
+{
+  "max_random_polynomial_degree": 20,
+  "random_polynomial_min_coeff": -10,
+  "random_polynomial_max_coeff": 10
+}
