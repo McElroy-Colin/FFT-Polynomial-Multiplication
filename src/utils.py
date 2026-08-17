@@ -2,6 +2,7 @@
 
 import math
 import random
+import re
 
 
 def clean_input_string(input_str: str) -> str:
@@ -89,7 +90,7 @@ def parse_nonneg_int(int_str: str) -> int | bool:
     return value
 
 
-def _pad_list(lst: list):
+def _pad_list(lst: list) -> None:
     """
     Pads the list `lst` in place with zeros until its length is a power of 2.
     """
@@ -165,7 +166,7 @@ def pad_match_polynomials(coeffs1: list[int | float], coeffs2: list[int | float]
     return n
 
 
-def clean_coefficients(coeffs: list[int | float | complex], int_coeffs: bool=True) -> list[int | float]:
+def clean_coefficients(coeffs: list[int] | list[float | complex], int_coeffs: bool=True) -> list[int] | list[float]:
     """
     Clean a list of coefficients by 
         - Removing imaginary parts of coefficients
@@ -218,3 +219,77 @@ def coeffs_to_polynomial_string(coeffs: list[int | float]) -> str:
         result += f" {sign} {term}"
 
     return result
+
+
+def parse_polynomial(poly: str) -> list[int] | list[float] | str:
+    """
+    Parses a polynomial string like "3x^2 + 2x - 5" into a list of
+    coefficients, where result[i] is the coefficient of x^i.
+ 
+    - "-a_ix^i" is treated as a negative coefficient.
+    - If ANY coefficient in the polynomial is a decimal, every value
+      in the returned list will be a float. Otherwise, all values
+      will be ints.
+ 
+    Examples:
+        "3x^2 + 2x - 5"   -> [-5, 2, 3]
+        "-x + 2.5x^2 + 3"  -> [3.0, -1.0, 2.5]
+        "-x^3 + 4"        -> [4, 0, 0, -1]
+
+    Returns the list of coefficients, or the first term that could not be matched.
+    """
+    # Remove all whitespace so parsing is uniform
+    cleaned = poly.replace("\t", "").replace(" ", "")
+ 
+    # Turn "-" into "+-" so we can split on "+" while keeping signs
+    # attached to their term (but don't touch a leading "-").
+    if cleaned.startswith("-"):
+        cleaned = "-" + cleaned[1:].replace("-", "+-")
+    else:
+        cleaned = cleaned.replace("-", "+-")
+ 
+    terms = [t for t in cleaned.split("+") if t]
+    # Regular expression to match terms of the form "ax^b", "ax", "a", "-ax^b", "a.bx", etc.
+    term_pattern = re.compile(r'^([+-]?\d*\.?\d*)(x(\^(\d+))?)?$')
+ 
+    coeffs = {}
+    max_degree = 0
+    has_decimal = False
+ 
+    for term in terms:
+        match = term_pattern.match(term)
+        # Return the error term on failure
+        if not match:
+            return term
+ 
+        coeff_str, has_x, _, exponent_str = match.groups()
+ 
+        # Determine the coefficient
+        if coeff_str in ("", "+"):
+            coeff = 1
+        elif coeff_str == "-":
+            coeff = -1
+        else:
+            if "." in coeff_str:
+                coeff = float(coeff_str)
+                has_decimal = True
+            else:
+                coeff = int(coeff_str)
+ 
+        # Determine the degree (power of x)
+        if has_x:
+            degree = int(exponent_str) if exponent_str else 1
+        else:
+            degree = 0
+ 
+        coeffs[degree] = coeffs.get(degree, 0) + coeff
+        max_degree = max(max_degree, degree)
+ 
+    result = [coeffs.get(i, 0) for i in range(max_degree + 1)]
+
+    # Update all coefficients to floats if a decimal was in any coefficient.
+    if has_decimal:
+        result = [float(c) for c in result]
+ 
+    return result
+
