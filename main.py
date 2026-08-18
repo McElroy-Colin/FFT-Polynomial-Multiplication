@@ -19,35 +19,37 @@ def main():
 
         # Manual entry case
         elif program_mode == "1":
-            a, b = manual_entry_mode()
+            coeffs_lst = manual_entry_mode()
             break
 
         # Random generation case
         elif program_mode == "2":
-            a, b = random_generation_mode()
+            coeffs_lst = random_generation_mode()
             break
 
         # Read from file case
         elif program_mode == "3":
-            a, b = read_from_file_mode()
+            coeffs_lst = read_from_file_mode()
             break
 
         # No choice case
         else:
             program_mode = input(f"\nChoice not recognized, please input{CHOICES_STR}")
 
-    # TODO: The rest of this should be in the src file for it...
+    if not coeffs_lst:
+        print(f"Failed to parse at least 2 polynomials. Check formatting and try again...")
+        quit()
+        
+    # Multiply each polynomial iteratively using the FFT and IFFT.
+    a = coeffs_lst[0]
+    for i in range(1, len(coeffs_lst)):
+        b = coeffs_lst[i]
+        a = multiply_polynomials(a, b)
 
-    N = pad_match_polynomials(a, b)
+    result = a
+    readable_result = coeffs_to_polynomial_string(result)
 
-    a_fft = fft(a)
-    b_fft = fft(b)
-
-    c_hat = [a_fft[k] * b_fft[k] for k in range(N)]
-    c = ifft(c_hat)
-    c = clean_coefficients(c)
-
-    print(c)
+    
 
 
 if __name__ == "__main__":

@@ -28,7 +28,7 @@ def parse_coefficients(coeffs_str: str) -> list[int] | list[float] | bool:
                       is a float (i.e. not every token was an int).
     """
 
-    if coeffs_str.strip().lower() == "quit":
+    if coeffs_str.lower() == "quit":
         return True
 
     # Split on whitespace.
@@ -236,8 +236,12 @@ def parse_polynomial(poly: str) -> list[int] | list[float] | str:
         "-x + 2.5x^2 + 3"  -> [3.0, -1.0, 2.5]
         "-x^3 + 4"        -> [4, 0, 0, -1]
 
-    Returns the list of coefficients, or the first term that could not be matched.
+    Returns:
+            list[int]     if the polynomial parses and every coefficient is an integer.
+            list[float]   if the polynomial parses and at least 1 coefficient is a float.
+            str           if any term failed to parse. Returns the problematic term.
     """
+    
     # Remove all whitespace so parsing is uniform
     cleaned = poly.replace("\t", "").replace(" ", "")
  

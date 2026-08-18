@@ -2,6 +2,8 @@
 
 import cmath
 
+from src.utils import pad_match_polynomials, clean_coefficients
+
 def _root_of_unity(n: int, k: int) -> complex:
     """
     Returns omega_n^k, the k-th of the n-th roots of unity.
@@ -85,3 +87,24 @@ def ifft(values: list[int | float | complex]) -> list[complex]:
     raw = _ifft_recursive(values)
     # Normalize each coefficient once after recursion.
     return [x / n for x in raw]
+
+
+def multiply_polynomials(a: list[int] | list[float], b: list[int] | list[float]) -> list[int] | list[float]:
+    """
+    Multiply the polynomials represented by the given lists of coefficients in order of ascending degree.
+    Errors if either list is empty.
+    Returns the coefficients of the product of a and b in order of ascending degree.
+    """
+
+    if (not a) or (not b):
+        raise ValueError("multiply_polynomials(), polynomials must not be 0")
+
+    N = pad_match_polynomials(a, b)
+    
+    a_fft = fft(a)
+    b_fft = fft(b)
+
+    c_hat = [a_fft[k] * b_fft[k] for k in range(N)]
+    c = ifft(c_hat)
+
+    return clean_coefficients(c)
