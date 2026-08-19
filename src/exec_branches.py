@@ -6,12 +6,13 @@ import json
 
 def manual_entry_mode() -> list[list[int] | list[float]]:
     """Prompt the user to manually enter coefficients for polynomials."""
-    print("Enter the coefficients of the polynomials in ascending order of degree, separated by spaces.")
+    print("\nEnter the coefficients of the polynomials in ascending order of degree, separated by spaces.\n" \
+          "Or enter the polynomials in standard form \"a_0 + a_1x + a_2x^2+...a_nx^n\"\nPress enter when done.")
 
     i = 1
     coeffs_lst = []
     while True:
-        coeffs_str = input(f"Polynomial {i} coefficients>  ").strip()
+        coeffs_str = input(f"Polynomial {i}>  ").strip()
         if coeffs_str == "":
             if len(coeffs_lst) < 2:
                 print("Enter at least 2 polynomials to multiply.\n")
@@ -23,10 +24,14 @@ def manual_entry_mode() -> list[list[int] | list[float]]:
         if curr_poly == True:
             quit()
         elif not curr_poly:
-            print("Coefficients must be numbers in ascending order of degree, separated by spaces.\n")
-        else:
-            coeffs_lst.append(curr_poly)
-            i += 1
+            curr_poly = parse_polynomial(coeffs_str)
+            if isinstance(curr_poly, str):
+                print("Coefficients must be numbers in ascending order of degree, separated by spaces.\n" \
+                      "Standard form polynomials must be of the form \"a_0 + a_1x + a_2x^2+...a_nx^n\" with constants a_0,...,a_n\n")
+                continue
+        
+        coeffs_lst.append(curr_poly)
+        i += 1
 
     return coeffs_lst
 
@@ -51,7 +56,7 @@ def random_generation_mode() -> tuple[list[int] | list[float], list[int] | list[
             int_bool = False
             break
 
-        print("\nEnter \"Y\"/\"yes\" for integer-only coefficients, \"N\"/\"no\" for float coefficients.")
+        print("Enter \"Y\"/\"yes\" for integer-only coefficients, \"N\"/\"no\" for float coefficients.\n")
 
     while True:
         num_polys = input("Enter the number of polynomials to multiply>  ").strip().lower()
@@ -78,7 +83,7 @@ def random_generation_mode() -> tuple[list[int] | list[float], list[int] | list[
         if max_degree is not False:  # Captures both the random degree and entered degree cases.
            break
 
-        print(f"\nDegrees must be non-negative integers, or blank for a random degree between 0 and {MAX_RANDOM_DEGREE}.")
+        print(f"Degrees must be non-negative integers, or blank for a random degree between 0 and {MAX_RANDOM_DEGREE}.\n")
 
     coeffs_lst = []
     for i in range(num_polys):
@@ -115,7 +120,9 @@ def read_from_file_mode() -> list[list[int] | list[float]]:
     format_str = input(f"Polynomial format?{FORMAT_CHOICES_STR}").strip()
     while True:
         format_mode = clean_input_string(format_str)
-        if format_mode == "1":
+        if format_mode.lower() == "quit":
+            quit()
+        elif format_mode == "1":
             human_readable = True
             break
         elif format_mode == "2":

@@ -28,7 +28,7 @@ def parse_coefficients(coeffs_str: str) -> list[int] | list[float] | bool:
                       is a float (i.e. not every token was an int).
     """
 
-    if coeffs_str.lower() == "quit":
+    if coeffs_str.strip().lower() == "quit":
         return True
 
     # Split on whitespace.
@@ -94,6 +94,12 @@ def _pad_list(lst: list) -> None:
     """
     Pads the list `lst` in place with zeros until its length is a power of 2.
     """
+
+    if not lst:
+        return []
+    elif len(lst) == 1:
+        return lst
+
     n = 1
     while n < len(lst):
         n *= 2
@@ -141,36 +147,37 @@ def random_polynomial(
     return coeffs
 
 
-def pad_match_polynomials(coeffs1: list[int | float], coeffs2: list[int | float]) -> int:
+def pad_match_lsts(lst1: list, lst2: list) -> tuple[list, list, int]:
     """
-    Pads two lists of polynomial coefficients in place with zeros so that they have the same length.
-    Their lengths will be able to store the product of these polynomials and must be a power of 2.
-        i.e. Their lengths will be the next power of 2 greater than or equal to len(coeffs1) + len(coeffs2) - 1.
+    Copies and pads two lists until they have the same length.
+    Their lengths will be able to store the product of these lists as polynomials and must be a power of 2.
+        i.e. Their lengths will be the next power of 2 greater than or equal to len(lst1) + len(lst2) - 1.
 
     Errors if either list is empty.
     
     Returns the new length of the padded lists.
     """
 
-    if (len(coeffs1) == 0) or (len(coeffs2) == 0):
+    if (len(lst1) == 0) or (len(lst2) == 0):
         raise ValueError("pad_match_polynomials(), both lists must be non-empty")
 
-    min_len = len(coeffs1) + len(coeffs2) - 1 
+    min_len = len(lst1) + len(lst2) - 1 
     n = 1
     while n < min_len:
         n *= 2
 
-    coeffs1 += [0] * (n - len(coeffs1))
-    coeffs2 += [0] * (n - len(coeffs2))
+    padded1 = lst1 + [0] * (n - len(lst1))
+    padded2 = lst2 + [0] * (n - len(lst2))
 
-    return n
+    return padded1, padded2, n
 
 
-def clean_coefficients(coeffs: list[int] | list[float | complex], int_coeffs: bool=True) -> list[int] | list[float]:
+def clean_coefficients(coeffs: list[int] | list[float | complex], int_coeffs: bool, noise_tolerance: float) -> list[int] | list[float]:
     """
     Clean a list of coefficients by 
         - Removing imaginary parts of coefficients
         - Rounding to the nearest integer if int_coeffs is True
+        - Rounding any values within noise_tolerance of 0 to 0
         - Removing trailing zeros
 
     Errors if coeffs is empty.
@@ -179,12 +186,20 @@ def clean_coefficients(coeffs: list[int] | list[float | complex], int_coeffs: bo
     """
 
     if len(coeffs) == 0:
-        raise ValueError("clean_coefficients(), list of coefficients must be non-empty")
+        raise ValueError("clean_coefficients(), list of coefficients must be non-empty\n")
 
-    cleaned = [(round(x.real) if int_coeffs else x.real) for x in coeffs]
+    cleaned = []
+    for x in coeffs:
+        if abs(x) < noise_tolerance:
+            x = 0
+
+        if int_coeffs:
+            cleaned.append(round(x.real))
+        else:
+            cleaned.append(x.real)
 
     # Remove trailing zeros.
-    while cleaned and cleaned[-1] == 0:
+    while len(cleaned) > 1 and cleaned[-1] == 0:
         cleaned.pop()
 
     return cleaned
@@ -198,7 +213,7 @@ def coeffs_to_polynomial_string(coeffs: list[int | float]) -> str:
     """
 
     if len(coeffs) == 0:
-        raise ValueError("coeffs_to_polynomial_string(), list of coefficients must be non-empty")
+        raise ValueError("coeffs_to_polynomial_string(), list of coefficients must be non-empty\n")
 
     terms = []
     # Ensure that a ceofficient like "-8" is written as "- 8x^i", not " + -8x^i".
