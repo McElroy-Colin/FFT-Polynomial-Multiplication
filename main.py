@@ -9,8 +9,8 @@ from src.exec_branches import *
 
 
 def main():
-    CHOICES_STR = "\n    <1> for manual coefficient entry\n" \
-                    "    <2> for random coefficient generation\n" \
+    CHOICES_STR = "\n    <1> for manual entry\n" \
+                    "    <2> for random generation\n" \
                     "    <3> to read from a file\n\n" \
                   ">  "
 

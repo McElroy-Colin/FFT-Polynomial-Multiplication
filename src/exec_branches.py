@@ -74,7 +74,7 @@ def random_generation_mode() -> tuple[list[int] | list[float], list[int] | list[
 
     i = 1
     while True:
-        degree_str = input(f"Degree of the polynomial >  ")
+        degree_str = input(f"Degree of the polynomials >  ")
         max_degree = parse_nonneg_int(degree_str)
         if max_degree == True:
             quit()
@@ -87,8 +87,7 @@ def random_generation_mode() -> tuple[list[int] | list[float], list[int] | list[
 
     coeffs_lst = []
     for i in range(num_polys):
-        coeffs_lst.append(random_polynomial(max_degree, always_max_degree=True, coeff_range=COEFFICIENT_RANGE, int_coeffs=int_bool))
-        print(f"Generated polynomial {i + 1}:  {coeffs_to_polynomial_string(coeffs_lst[i])}")
+        coeffs_lst.append(random_polynomial(max_degree, always_max_degree=True, coeff_range=COEFFICIENT_RANGE, pad_power_of_2=False, int_coeffs=int_bool))
 
     return coeffs_lst
 
